@@ -5,11 +5,22 @@ import { Formik } from 'formik'
 import { Button, Col, Form, Row } from 'react-bootstrap'
 import { FaCheck, FaTrash } from 'react-icons/fa'
 import * as Yup from "yup"
+import ReactInputMask from 'react-input-mask'
 
 export default function CadastroPage() {
 
-    function cadastrar(dados) {
-        console.log(dados)
+    function cadastrar(aluno) {
+
+      // Recebo os dados do aluno do formulario
+        console.log(aluno)
+        // Busco no localStorage a lista de alunos, se nao existir crio uma nova vazia
+         const alunos = JSON.parse(localStorage.getItem('alunos')) || []
+        // Acrescento o novo aluno na lista
+         alunos.push(aluno)
+        // Gravar a nova lista de alunos no localStorage, Substituindo a antiga
+        localStorage.setItem('alunos',JSON.stringify(alunos))
+
+      
       }
 
 
@@ -33,7 +44,8 @@ export default function CadastroPage() {
     faculdade:'',
     curso:'',
     periodo:'',
-    matricula:''
+    matricula:'',
+    foto:''
 
   }
 
@@ -43,7 +55,7 @@ export default function CadastroPage() {
     sobrenome: Yup.string().required("O campo é obrigátorio!"),
     email: Yup.string().email("Email Inválido").required("O campo é obrigátorio!"),
     dataNascimento: Yup.date("Data inválida").required("O campo é obrigátorio!"),
-    telefone: Yup.string().required("O campo é obrigátorio!"),
+    telefone: Yup.string().min(14, "Telefone Inválido").required("O campo é obrigátorio!"),
     endereco:Yup.object().shape({
 
     cep: Yup.string().required("O campo é obrigátorio!"),
@@ -59,6 +71,8 @@ export default function CadastroPage() {
     curso: Yup.string().required("O campo é obrigátorio!"),
     periodo: Yup.string().required("O campo é obrigátorio!"),
     matricula: Yup.string().required("O campo é obrigátorio!"),
+
+    
 
  })
 
@@ -133,7 +147,7 @@ export default function CadastroPage() {
 
               <Form.Group as={Col}>
                 <Form.Label>Data de Nascimento:</Form.Label>
-                <Form.Control
+                <Form.Control 
                   name='dataNascimento'
                   type='date'
                   value={values.dataNascimento}
@@ -152,7 +166,8 @@ export default function CadastroPage() {
 
             <Form.Group as={Col} md={6}>
                 <Form.Label>Telefone:</Form.Label>
-                <Form.Control
+                <Form.Control as={ReactInputMask}
+                  mask={"(99)99999-9999"}
                   name='telefone'
                   type='text'
                   value={values.telefone}
@@ -173,9 +188,11 @@ export default function CadastroPage() {
             </div>
 
             <Row className='mb-2'>
-              <Form.Group as={Col}>
+              <Form.Group as={Col} md={2}>
                 <Form.Label>Cep:</Form.Label>
-                <Form.Control
+                <Form.Control as={ReactInputMask}
+                  mask={"99999-999"}
+                  placeholder={"99999-999"}
                   name='endereco.cep'
                   type='text'
                   value={values.endereco.cep}
@@ -189,7 +206,7 @@ export default function CadastroPage() {
 
               </Form.Group>
 
-              <Form.Group as={Col} md={3}>
+              <Form.Group as={Col} md={6}>
                 <Form.Label>logradouro:</Form.Label>
                 <Form.Control
                   name='endereco.logradouro'
@@ -241,7 +258,7 @@ export default function CadastroPage() {
 
             <Row className='mb-2'>
 
-            <Form.Group as={Col} md={3}>
+            <Form.Group as={Col} md={6}>
                 <Form.Label>Bairro:</Form.Label>
                 <Form.Control
                   name='endereco.bairro'
@@ -257,7 +274,7 @@ export default function CadastroPage() {
 
                 </Form.Group>
 
-                <Form.Group as={Col} md={3}>
+                <Form.Group as={Col} md={6}>
                 <Form.Label>Cidade:</Form.Label>
                 <Form.Control
                   name='endereco.cidade'
@@ -289,12 +306,121 @@ export default function CadastroPage() {
 
                 </Form.Group>
 
+                <div className='text-center'>
+                <h3>Dados Acadêmicos:</h3>
+                <hr/>
+            </div>
 
+            <Row className='mb-2'>
+              <Form.Group as={Col}>
+                <Form.Label>Faculdade:</Form.Label>
+                <Form.Select
+                  name='faculdade'
+                  value={values.faculdade}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  isValid={touched.faculdade && !errors.faculdade}
+                  isInvalid={touched.faculdade && !!errors.faculdade}
+                >
+                  <option value=''>Selecione</option>
+                  <option value="IESB SUL">IESB SUL</option>
+                  <option value="IESB NORTE">IESB NORTE</option>
+                  <option value="IESB OESTE">IESB OESTE</option>
+                  </Form.Select>
 
+                <Form.Control.Feedback type='invalid'>{errors.faculdade}</Form.Control.Feedback>
+
+              </Form.Group>
+
+              <Form.Group as={Col}>
+                <Form.Label>Curso:</Form.Label>
+                <Form.Select
+                  name='curso'
+                  value={values.curso}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  isValid={touched.curso && !errors.curso}
+                  isInvalid={touched.curso && !!errors.curso}
+                >
+                  <option value=''>Selecione</option>
+                  <option value="Análise e Desenvolvimento de Sistemas">Análise e Desenvolvimento de Sistemas</option>
+                  <option value="Jogos Digitais">Jogos digitais</option>
+                  <option value="Enfermagem">Enfermagem</option>
+                  </Form.Select>
+
+                <Form.Control.Feedback type='invalid'>{errors.curso}</Form.Control.Feedback>
+
+              </Form.Group>
+
+              
+
+              
+              
+            </Row>
+
+            <Row className='mb-2'>
+              <Form.Group as={Col}>
+                <Form.Label>Período:</Form.Label>
+                <Form.Select
+                  name='periodo'
+                  value={values.periodo}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  isValid={touched.periodo && !errors.periodo}
+                  isInvalid={touched.periodo && !!errors.periodo}
+                >
+                  <option value=''>Selecione</option>
+                  <option value="Matutino">Matutino</option>
+                  <option value="Vespertino">Vespertino</option>
+                  <option value="Noturno">Noturno</option>
+                  </Form.Select>
+
+                <Form.Control.Feedback type='invalid'>{errors.periodo}</Form.Control.Feedback>
+
+              </Form.Group>
+
+              <Form.Group as={Col} md={4}>
+                <Form.Label>Matricula:</Form.Label>
+                <Form.Control as={ReactInputMask}
+                mask={"999999"}
+                placeholder='999999'
+                  name='matricula'
+                  type='text'
+                  value={values.matricula}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  isValid={touched.matricula && !errors.matricula}
+                  isInvalid={touched.matricula && !!errors.matricula}
+                />
+                  
+                <Form.Control.Feedback type='invalid'>{errors.matricula}</Form.Control.Feedback>
+
+              </Form.Group>
+
+              <Form.Group as={Col}>
+                <Form.Label>Link da foto:</Form.Label>
+                <Form.Control
+                  name='foto'
+                  type='text'
+                  value={values.foto}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                  isValid={touched.foto && !errors.foto}
+                  isInvalid={touched.foto && !!errors.foto}
+                />
+                  
+                <Form.Control.Feedback type='invalid'>{errors.foto}</Form.Control.Feedback>
+
+              </Form.Group>
+
+              
+              
 
 
             </Row>
 
+            </Row>
+            
 
             <Form.Group className='text-center'>
               <Button onClick={handleReset} className='me-2'><FaTrash /> Limpar</Button>
