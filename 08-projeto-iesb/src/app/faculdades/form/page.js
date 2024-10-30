@@ -3,33 +3,36 @@
 import Pagina from '@/components/Pagina'
 import apiLocalidades from '@/services/apiLocalidades'
 import { Formik } from 'formik'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button, Col, Form, Row } from 'react-bootstrap'
 import { FaArrowLeft, FaCheck } from "react-icons/fa"
-import * as Yup from 'yup'
 import { v4 } from 'uuid'
-import { useRouter } from 'next/navigation'
+import * as Yup from 'yup'
 
-
-export default function FaculdadeFormPage() {
-
-    //router -> 
-
-    const router = useRouter()
-
-
+export default function FaculdadeFormPage(props) {
+  // router -> hook para navegação de telas
+  const router = useRouter()
 
   // Criar estados(react) para armazenar os dados dos selects
   const [paises, setPaises] = useState([])
   const [estados, setEstados] = useState([])
   const [cidades, setCidades] = useState([])
 
-  // Buscar a Lista de faculdades no local storage, se não existir inicia uma lista vazia, 
+  // Buscar a lista de faculdades no localStorage, se não existir, inicializa uma lista vazia
+  const faculdades = JSON.parse(localStorage.getItem('faculdades')) || []
 
-  const faculdades= JSON.parse(localStorage.getItem('faculdades')) || []
+  // Recuperando id para edição
+  const id = props.searchParams.id
+  console.log(props.searchParams.id)
+  // Buscar na lista a faculdade com o ID recebido no parametro
+  const faculdadeEditada = faculdades.find(item => item.id == id)
+  console.log(faculdadeEditada)
+
 
   // carregar os dados na inicialização da página
   useEffect(() => {
+    // buscar os paises da api, imprimi no log e guarda no armazenamento
     apiLocalidades.get('/paises').then(response => {
       console.log("paises >>> ", response.data)
       setPaises(response.data)
@@ -44,16 +47,22 @@ export default function FaculdadeFormPage() {
 
   // função para salvar os dados do form
   function salvar(dados) {
-    
+    // Se faculdadeEditada existe, mudar os dados e gravar no localStorage
+    if(faculdadeEditada){
+      Object.assign(faculdadeEditada, dados)
+      // Substitui a lista antiga pela nova no localStorage
+      localStorage.setItem('faculdades', JSON.stringify(faculdades))
+    } else {
+      // se faculdadeEditada não existe, é criação de uma nova
+      // gerar um ID (Identificador unico)
+      dados.id = v4()
+      // Adiciona a nova faculdade na lista de faculdades
+      faculdades.push(dados)
+      // Substitui a lista antiga pela nova no localStorage
+      localStorage.setItem('faculdades', JSON.stringify(faculdades))
+    }
 
-    //Gerar um ID (identificador Unico)
-
-    dados.id = v4()
-    console.log(dados)
-
-    faculdades.push(dados)
-    localStorage.setItem('faculdades', JSON.stringify(faculdades))
-    alert("Faculdade Criada com sucesso!")
+    alert("Faculdade criada com sucesso!")
     router.push("/faculdades")
   }
 
@@ -82,7 +91,9 @@ export default function FaculdadeFormPage() {
 
       <Formik
         // Atributos do formik
-        initialValues={initialValues}
+        // Se for edição, coloca os dados da faculdadeEditada
+        // Se for nova, colocar o initialValues com os valores vazios
+        initialValues={faculdadeEditada || initialValues}
         validationSchema={validationSchema}
         onSubmit={salvar}
       >
@@ -90,20 +101,20 @@ export default function FaculdadeFormPage() {
         {
           // os valores e funções do formik
           ({ values, errors, touched, handleChange, handleBlur, handleSubmit }) => {
-            // construir o form
+
             // ações do formulário
             // debug
             // console.log("DEBUG >>>")
             // console.log({values, errors, touched})
 
-            useEffect(() =>{
-            console.log("Mexeu no estado>>>")
-            if(values.estado !==''){
+            useEffect(() => {
+              console.log("Mexeu no estado >>>")
+              if (values.estado !== '') {
                 apiLocalidades.get(`/estados/${values.estado}/municipios`).then(response => {
-                            console.log("cidades >>>", response.data)
-                            setCidades(response.data)
+                  console.log("cidades >>>", response.data)
+                  setCidades(response.data)
                 })
-            }
+              }
             }, [values.estado])
 
 
@@ -198,8 +209,8 @@ export default function FaculdadeFormPage() {
 
                 {/* botões */}
                 <Form.Group className='text-end'>
+                  <Button className='me-2' href='/faculdades'><FaArrowLeft /> Voltar</Button>
                   <Button type='submit' variant='success'><FaCheck /> Enviar</Button>
-                  <Button class name="me-2" href='/faculdades'><FaArrowLeft />Voltar</Button>
                 </Form.Group>
 
 
